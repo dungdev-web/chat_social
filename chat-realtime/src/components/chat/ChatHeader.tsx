@@ -15,6 +15,8 @@ import { doc, getDoc } from "firebase/firestore";
 import { auth } from "@/lib/firebase";
 import { useCallContext } from "@/context/CallContext";
 import IncomingCallModal from "./IncomingCallModal";
+import MiniCallWindow from "./MiniCallWindow";
+
 type User = {
   email: string;
   photoURL?: string;
@@ -26,7 +28,7 @@ export default function ChatHeader({ friendId }: { friendId: string }) {
   const [isOnline, setIsOnline] = useState(true);
   const me = auth.currentUser!;
 
-  const { callUser, acceptCall, rejectCall, incoming, inCall, endCall } =
+  const { callUser, acceptCall, rejectCall, incoming, inCall, endCall,callStartAt } =
     useCallContext();
   useEffect(() => {
     const loadFriend = async () => {
@@ -159,7 +161,14 @@ export default function ChatHeader({ friendId }: { friendId: string }) {
         onAccept={acceptCall}
         onReject={rejectCall}
       />
-     
+     <MiniCallWindow
+  isOpen={inCall}
+  name={friend.displayName || friend.email}
+  avatar={friend.photoURL}
+  callStartAt={callStartAt}
+  onEnd={endCall}
+/>
+
     </>
   );
 }

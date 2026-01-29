@@ -6,6 +6,7 @@ export function useCall(myId: string) {
   const [incoming, setIncoming] = useState<string | null>(null);
   const [incomingOffer, setIncomingOffer] =
     useState<RTCSessionDescriptionInit | null>(null);
+const [callStartAt, setCallStartAt] = useState<number | null>(null);
 
   const pc = useRef<RTCPeerConnection | null>(null);
   const localStream = useRef<MediaStream | null>(null);
@@ -22,6 +23,8 @@ export function useCall(myId: string) {
     setInCall(false);
     setIncoming(null);
     setIncomingOffer(null);
+    setCallStartAt(null);
+
   };
 
   useEffect(() => {
@@ -38,6 +41,8 @@ export function useCall(myId: string) {
     socket.on("call-answered", async ({ answer }) => {
       await pc.current!.setRemoteDescription(answer);
       setInCall(true);
+        setCallStartAt(Date.now()); // ⏱
+
     });
 
     socket.on("call-rejected", () => {
@@ -125,6 +130,7 @@ export function useCall(myId: string) {
     // 🔥 ĐÓNG MODAL NGAY
     setIncoming(null);
     setIncomingOffer(null);
+setCallStartAt(Date.now()); // ⏱
 
     await setupPC(from);
 
@@ -164,5 +170,6 @@ export function useCall(myId: string) {
     endCall,
     inCall,
     incoming,
+    callStartAt
   };
 }

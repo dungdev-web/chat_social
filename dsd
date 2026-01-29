@@ -1,0 +1,83 @@
+[1mdiff --git a/chat-realtime/src/components/chat/ChatHeader.tsx b/chat-realtime/src/components/chat/ChatHeader.tsx[m
+[1mindex 5b318b7..ee76c24 100644[m
+[1m--- a/chat-realtime/src/components/chat/ChatHeader.tsx[m
+[1m+++ b/chat-realtime/src/components/chat/ChatHeader.tsx[m
+[36m@@ -15,6 +15,8 @@[m [mimport { doc, getDoc } from "firebase/firestore";[m
+ import { auth } from "@/lib/firebase";[m
+ import { useCallContext } from "@/context/CallContext";[m
+ import IncomingCallModal from "./IncomingCallModal";[m
+[32m+[m[32mimport MiniCallWindow from "./MiniCallWindow";[m
+[32m+[m
+ type User = {[m
+   email: string;[m
+   photoURL?: string;[m
+[36m@@ -26,7 +28,7 @@[m [mexport default function ChatHeader({ friendId }: { friendId: string }) {[m
+   const [isOnline, setIsOnline] = useState(true);[m
+   const me = auth.currentUser!;[m
+ [m
+[31m-  const { callUser, acceptCall, rejectCall, incoming, inCall, endCall } =[m
+[32m+[m[32m  const { callUser, acceptCall, rejectCall, incoming, inCall, endCall,callStartAt } =[m
+     useCallContext();[m
+   useEffect(() => {[m
+     const loadFriend = async () => {[m
+[36m@@ -159,7 +161,14 @@[m [mexport default function ChatHeader({ friendId }: { friendId: string }) {[m
+         onAccept={acceptCall}[m
+         onReject={rejectCall}[m
+       />[m
+[31m-     [m
+[32m+[m[32m     <MiniCallWindow[m
+[32m+[m[32m  isOpen={inCall}[m
+[32m+[m[32m  name={friend.displayName || friend.email}[m
+[32m+[m[32m  avatar={friend.photoURL}[m
+[32m+[m[32m  callStartAt={callStartAt}[m
+[32m+[m[32m  onEnd={endCall}[m
+[32m+[m[32m/>[m
+[32m+[m
+     </>[m
+   );[m
+ }[m
+[1mdiff --git a/chat-realtime/src/hook/useCall.ts b/chat-realtime/src/hook/useCall.ts[m
+[1mindex 0dcdaf5..f97cdeb 100644[m
+[1m--- a/chat-realtime/src/hook/useCall.ts[m
+[1m+++ b/chat-realtime/src/hook/useCall.ts[m
+[36m@@ -6,6 +6,7 @@[m [mexport function useCall(myId: string) {[m
+   const [incoming, setIncoming] = useState<string | null>(null);[m
+   const [incomingOffer, setIncomingOffer] =[m
+     useState<RTCSessionDescriptionInit | null>(null);[m
+[32m+[m[32mconst [callStartAt, setCallStartAt] = useState<number | null>(null);[m
+ [m
+   const pc = useRef<RTCPeerConnection | null>(null);[m
+   const localStream = useRef<MediaStream | null>(null);[m
+[36m@@ -22,6 +23,8 @@[m [mexport function useCall(myId: string) {[m
+     setInCall(false);[m
+     setIncoming(null);[m
+     setIncomingOffer(null);[m
+[32m+[m[32m    setCallStartAt(null);[m
+[32m+[m
+   };[m
+ [m
+   useEffect(() => {[m
+[36m@@ -38,6 +41,8 @@[m [mexport function useCall(myId: string) {[m
+     socket.on("call-answered", async ({ answer }) => {[m
+       await pc.current!.setRemoteDescription(answer);[m
+       setInCall(true);[m
+[32m+[m[32m        setCallStartAt(Date.now()); // ⏱[m
+[32m+[m
+     });[m
+ [m
+     socket.on("call-rejected", () => {[m
+[36m@@ -125,6 +130,7 @@[m [mexport function useCall(myId: string) {[m
+     // 🔥 ĐÓNG MODAL NGAY[m
+     setIncoming(null);[m
+     setIncomingOffer(null);[m
+[32m+[m[32msetCallStartAt(Date.now()); // ⏱[m
+ [m
+     await setupPC(from);[m
+ [m
+[36m@@ -164,5 +170,6 @@[m [mexport function useCall(myId: string) {[m
+     endCall,[m
+     inCall,[m
+     incoming,[m
+[32m+[m[32m    callStartAt[m
+   };[m
+ }[m

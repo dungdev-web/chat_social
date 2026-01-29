@@ -14,21 +14,91 @@ const io = new Server(server, {
   },
 });
 
+// uid -> socketId
+const users = new Map();
+
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
-  socket.on("send-message", (text) => {
-    // ❌ io.emit("receive-message", text);
-
-    // ✅ CHỈ gửi cho người khác
-    socket.broadcast.emit("receive-message", text);
+  // ======================
+  // REGISTER USER
+  // ======================
+  socket.on("register", (uid) => {
+    users.set(uid, socket.id);
+    console.log("Register:", uid);
   });
 
+  // ======================
+  // CHAT
+  // ======================
+  socket.on("join-room", (roomId) => {
+    socket.join(roomId);
+  });
+
+  socket.on("send-message", ({ roomId }) => {
+    socket.to(roomId).emit("refresh");
+  });
+
+ // ======================
+// CALL AUDIO (WebRTC signaling)
+// ======================
+
+// ======================
+// CALL AUDIO (WEBRTC SIGNALING)
+// ======================
+
+socket.on("call-user", ({ from, to, offer }) => {
+  const toSocket = users.get(to);
+  if (toSocket) {
+    io.to(toSocket).emit("incoming-call", { from, offer });
+  }
+});
+
+socket.on("answer-call", ({ to, answer }) => {
+  const toSocket = users.get(to);
+  if (toSocket) {
+    io.to(toSocket).emit("call-answered", { answer });
+  }
+});
+
+socket.on("ice-candidate", ({ to, candidate }) => {
+  const toSocket = users.get(to);
+  if (toSocket) {
+    io.to(toSocket).emit("ice-candidate", { candidate });
+  }
+});
+
+socket.on("end-call", ({ to }) => {
+  const toSocket = users.get(to);
+  if (toSocket) {
+    io.to(toSocket).emit("call-ended");
+  }
+});
+
+
+
+
+
+socket.on("reject-call", ({ to }) => {
+  const toSocket = users.get(to);
+  if (toSocket) {
+    io.to(toSocket).emit("call-rejected");
+  }
+});
+
+  // ======================
+  // DISCONNECT
+  // ======================
   socket.on("disconnect", () => {
-    console.log("User disconnected");
+    for (const [uid, sid] of users.entries()) {
+      if (sid === socket.id) {
+        users.delete(uid);
+        console.log("User disconnected:", uid);
+      }
+    }
   });
 });
 
 server.listen(3001, () => {
-  console.log("Socket server running on http://localhost:3001");
+  console.log("✅ Socket server running on http://localhost:3001");
 });

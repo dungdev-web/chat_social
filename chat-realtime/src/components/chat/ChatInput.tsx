@@ -3,13 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Send, Smile, Paperclip, Mic } from "lucide-react";
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import EmojiPicker from "./EmojiPicker";
-type ChatInputProps = {
-  text: string;
-  setText: (text: string) => void;
-  onSend: () => void;
-  onTyping?: () => void;
-};
+import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
+import { ChatInputProps } from "@/type/types";
+import { uploadChatImage } from "@/services/uploadImage";
 
 export default function ChatInput({
   text,
@@ -18,23 +14,58 @@ export default function ChatInput({
   onTyping,
 }: ChatInputProps) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  /* =========================
+      SEND TEXT
+  ========================== */
+  const handleSendText = () => {
+    if (!text.trim()) return;
+    onSend({ text });
+    setText("");
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      onSend();
+      handleSendText();
     }
   };
 
-  const handleEmojiSelect = (emoji: string) => {
-    setText(text + emoji);
+  /* =========================
+      EMOJI
+  ========================== */
+  const handleEmojiClick = (emojiData: EmojiClickData) => {
+    setText((prev) => prev + emojiData.emoji);
     setShowEmojiPicker(false);
     inputRef.current?.focus();
   };
 
+  /* =========================
+      IMAGE UPLOAD
+  ========================== */
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      const imageUrl = await uploadChatImage(file);
+      onSend({ imageUrl });
+    } catch (err) {
+      console.error("Upload image failed", err);
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
   return (
     <div className="relative">
+      {/* ================= EMOJI PICKER ================= */}
       <AnimatePresence>
         {showEmojiPicker && (
           <motion.div
@@ -42,93 +73,87 @@ export default function ChatInput({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute bottom-full left-4 mb-2"
+            className="absolute bottom-full left-4 mb-2 z-50"
           >
             <EmojiPicker
-              onSelect={handleEmojiSelect}
-              onClose={() => setShowEmojiPicker(false)}
+              onEmojiClick={handleEmojiClick}
+              height={350}
+              theme={Theme.LIGHT}
             />
           </motion.div>
         )}
       </AnimatePresence>
 
+      {/* ================= INPUT BAR ================= */}
       <div className="p-4 flex items-center gap-2">
-        {/* Attachment Button */}
-        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full text-gray-600 hover:text-blue-600 hover:bg-blue-50"
-          >
-            <Paperclip className="w-5 h-5" />
-          </Button>
-        </motion.div>
+        {/* IMAGE BUTTON */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => fileRef.current?.click()}
+        >
+          <Paperclip />
+        </Button>
 
-        {/* Input Field */}
+        <Input
+          type="file"
+          accept="image/*"
+          hidden
+          ref={fileRef}
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+
+            const imageUrl = await uploadChatImage(file);
+            onSend({ imageUrl });
+            e.target.value = "";
+          }}
+        />
+
+        {/* INPUT */}
         <div className="flex-1 relative">
           <Input
             ref={inputRef}
             value={text}
             onChange={(e) => {
               setText(e.target.value);
-              onTyping?.();
+              onTyping();
             }}
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
-            className="pr-12 py-6 rounded-full bg-gray-50 border-gray-200 focus:bg-white focus:border-blue-300 transition-all"
+            className="pr-12 py-6 rounded-full"
+            disabled={uploading}
           />
-          
-          {/* Emoji Button */}
-          <motion.div
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
+
+          {/* EMOJI BUTTON */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowEmojiPicker((v) => !v)}
             className="absolute right-3 top-1/2 -translate-y-1/2"
           >
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              className="rounded-full text-gray-600 hover:text-yellow-500 hover:bg-yellow-50"
-            >
-              <Smile className="w-5 h-5" />
-            </Button>
-          </motion.div>
+            <Smile />
+          </Button>
         </div>
 
-        {/* Voice Message Button */}
-        {!text.trim() ? (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full text-gray-600 hover:text-purple-600 hover:bg-purple-50"
-            >
-              <Mic className="w-5 h-5" />
-            </Button>
-          </motion.div>
+        {/* SEND / MIC */}
+        {text.trim() ? (
+          <Button onClick={handleSendText} size="icon" disabled={uploading}>
+            <Send />
+          </Button>
         ) : (
-          /* Send Button */
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <Button
-              onClick={onSend}
-              className="rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all"
-              size="icon"
-            >
-              <Send className="w-5 h-5" />
-            </Button>
-          </motion.div>
+          <Button variant="ghost" size="icon">
+            <Mic />
+          </Button>
         )}
       </div>
+
+      {/* UPLOADING STATE */}
+      {uploading && (
+        <div className="absolute inset-0 bg-white/60 flex items-center justify-center text-sm text-gray-500">
+          Đang gửi ảnh...
+        </div>
+      )}
     </div>
   );
 }

@@ -11,25 +11,30 @@ import {
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { Timestamp } from "firebase/firestore";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { auth } from "@/lib/firebase";
 import { useCallContext } from "@/context/CallContext";
 import IncomingCallModal from "./IncomingCallModal";
 import MiniCallWindow from "./MiniCallWindow";
-
-type User = {
-  email: string;
-  photoURL?: string;
-  displayName?: string;
-};
-
+import { User } from "@/type/types";
+import { timeAgo } from "@/hook/useUserStatus";
 export default function ChatHeader({ friendId }: { friendId: string }) {
   const [friend, setFriend] = useState<User | null>(null);
   const [isOnline, setIsOnline] = useState(true);
   const me = auth.currentUser!;
 
-  const { callUser, acceptCall, rejectCall, incoming, inCall, endCall,callStartAt } =
-    useCallContext();
+  const {
+    callUser,
+    acceptCall,
+    rejectCall,
+    incoming,
+    inCall,
+    endCall,
+    callStartAt,
+  } = useCallContext();
+ 
+
   useEffect(() => {
     const loadFriend = async () => {
       const snap = await getDoc(doc(db, "users", friendId));
@@ -39,12 +44,21 @@ export default function ChatHeader({ friendId }: { friendId: string }) {
     };
     loadFriend();
   }, [friendId]);
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, "users", friendId), (snap) => {
+      if (snap.exists()) {
+        setFriend(snap.data() as User);
+      }
+    });
+
+    return () => unsub();
+  }, [friendId]);
 
   if (!friend) return null;
 
   return (
     <>
-     {inCall && (
+      {inCall && (
         <div className="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-xl shadow-lg">
           🔊 Đang trong cuộc gọi...
           <button onClick={endCall}>❌</button>
@@ -72,7 +86,7 @@ export default function ChatHeader({ friendId }: { friendId: string }) {
                 </Avatar>
               </motion.div>
               {/* Online Status */}
-              {isOnline && (
+              {friend.online && (
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
@@ -83,7 +97,7 @@ export default function ChatHeader({ friendId }: { friendId: string }) {
 
             <div>
               <h3 className="font-semibold text-gray-900">
-                {friend.displayName || friend.email.split("@")[0]}
+                {friend.name || friend.email.split("@")[0]}
               </h3>
               <motion.p
                 initial={{ opacity: 0 }}
@@ -91,13 +105,10 @@ export default function ChatHeader({ friendId }: { friendId: string }) {
                 transition={{ delay: 0.1 }}
                 className="text-xs text-gray-500"
               >
-                {isOnline ? (
-                  <span className="flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                    Active now
-                  </span>
+                {friend.online ? (
+                  <span className="text-green-500">● <span className="text-black">Đang hoạt động</span></span>
                 ) : (
-                  "Offline"
+                  <>Hoạt động {timeAgo(friend.lastActive)}</>
                 )}
               </motion.p>
             </div>
@@ -155,20 +166,19 @@ export default function ChatHeader({ friendId }: { friendId: string }) {
       </motion.div>
       <IncomingCallModal
         isOpen={!!incoming && !inCall}
-        callerName={friend.displayName || friend.email.split("@")[0]}
+        callerName={friend.name || friend.email.split("@")[0]}
         callerAvatar={friend.photoURL}
         callerEmail={friend.email}
         onAccept={acceptCall}
         onReject={rejectCall}
       />
-     <MiniCallWindow
-  isOpen={inCall}
-  name={friend.displayName || friend.email}
-  avatar={friend.photoURL}
-  callStartAt={callStartAt}
-  onEnd={endCall}
-/>
-
+      <MiniCallWindow
+        isOpen={inCall}
+        name={friend.name || friend.email}
+        avatar={friend.photoURL}
+        callStartAt={callStartAt}
+        onEnd={endCall}
+      />
     </>
   );
 }

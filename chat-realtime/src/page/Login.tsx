@@ -54,13 +54,13 @@ export default function Login() {
   ];
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen flex bg-linear-to-br from-blue-50 via-white to-purple-50">
       {/* Left Side - Branding & Features */}
       <motion.div
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6 }}
-        className="hidden lg:flex lg:flex-1 flex-col justify-center px-12 py-12 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 relative overflow-hidden"
+        className="hidden lg:flex lg:flex-1 flex-col justify-center px-12 py-12 bg-linear-to-br from-blue-600 via-purple-600 to-pink-500 relative overflow-hidden"
       >
         {/* Animated Background Elements */}
         <motion.div
@@ -133,7 +133,7 @@ export default function Login() {
                 whileHover={{ x: 10 }}
                 className="flex items-start gap-4 group cursor-pointer"
               >
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow`}>
+                <div className={`w-12 h-12 rounded-xl bg-linear-to-br ${feature.color} flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow`}>
                   <feature.icon className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -166,7 +166,7 @@ export default function Login() {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl mb-4 shadow-lg"
+                className="inline-flex items-center justify-center w-20 h-20 bg-linear-to-br from-blue-600 to-purple-600 rounded-2xl mb-4 shadow-lg"
               >
                 <MessageCircle className="w-10 h-10 text-white" />
               </motion.div>
@@ -203,7 +203,7 @@ export default function Login() {
               >
                 {/* Animated Background */}
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10"
+                  className="absolute inset-0 bg-linear-to-r from-blue-600/10 to-purple-600/10"
                   initial={{ x: "-100%" }}
                   whileHover={{ x: "100%" }}
                   transition={{ duration: 0.6 }}

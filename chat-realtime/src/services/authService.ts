@@ -25,3 +25,6 @@ export async function loginWithGoogle() {
 
   return user;
 }
+export async function logout() {
+  await auth.signOut();
+}

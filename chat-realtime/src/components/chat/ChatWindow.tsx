@@ -1,7 +1,7 @@
 import MessageList from "./MessageList";
 import ChatHeader from "./ChatHeader";
 import ChatInput from "./ChatInput";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { socket } from "../../lib/socket";
 import { auth, db } from "@/lib/firebase";
 import {
@@ -13,12 +13,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { motion, AnimatePresence } from "framer-motion";
-
-type Message = {
-  text: string;
-  sender: string;
-  createdAt?: any;
-};
+import { Message } from "@/type/types";
 
 function getRoomId(a: string, b: string) {
   return [a, b].sort().join("_");
@@ -28,10 +23,30 @@ export default function ChatWindow({ friendId }: { friendId: string | null }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const typingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const me = auth.currentUser;
 
   const roomId = me && friendId ? getRoomId(me.uid, friendId) : null;
+useEffect(() => {
+  if (!roomId) return;
+
+  const q = query(
+    collection(db, "chats", roomId, "messages"),
+    orderBy("createdAt", "asc")
+  );
+
+  const unsub = onSnapshot(q, (snap) => {
+    const data: Message[] = snap.docs.map((d) => ({
+      id: d.id,
+      ...(d.data() as Omit<Message, "id">),
+    }));
+
+    setMessages(data);
+  });
+
+  return () => unsub();
+}, [roomId]);
 
   // ✅ RESET MESSAGE KHI ĐỔI PHÒNG
   useEffect(() => {
@@ -44,7 +59,7 @@ export default function ChatWindow({ friendId }: { friendId: string | null }) {
 
     const q = query(
       collection(db, "chats", roomId, "messages"),
-      orderBy("createdAt")
+      orderBy("createdAt"),
     );
 
     const unsub = onSnapshot(q, (snap) => {
@@ -78,17 +93,26 @@ export default function ChatWindow({ friendId }: { friendId: string | null }) {
       text,
       sender: me.uid,
       createdAt: serverTimestamp(),
+       seenBy: [me.uid]
     });
 
-    socket.emit("send-message", { roomId });
     setText("");
   };
 
   // Handle typing indicator
+
   const handleTyping = () => {
-    if (roomId) {
-      socket.emit("typing", { roomId });
+    if (!roomId) return;
+
+    socket.emit("typing", { roomId });
+
+    if (typingTimeout.current) {
+      clearTimeout(typingTimeout.current);
     }
+
+    typingTimeout.current = setTimeout(() => {
+      socket.emit("stop-typing", { roomId });
+    }, 1000);
   };
 
   // ✅ UI PLACEHOLDER
@@ -97,7 +121,7 @@ export default function ChatWindow({ friendId }: { friendId: string | null }) {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="flex-1 flex items-center justify-center bg-gradient-to-br from-white to-gray-50"
+        className="flex-1 flex items-center justify-center bg-linear-to-br from-white to-gray-50"
       >
         <div className="text-center space-y-4">
           <motion.div
@@ -139,8 +163,9 @@ export default function ChatWindow({ friendId }: { friendId: string | null }) {
 
       {/* MESSAGE LIST SCROLL */}
       <div className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50/30 to-white">
-        <MessageList messages={messages} meId={me.uid} />
-        
+        <MessageList messages={messages} meId={me.uid}   friendId={friendId}
+ />
+
         {/* Typing Indicator */}
         <AnimatePresence>
           {isTyping && (
@@ -168,7 +193,7 @@ export default function ChatWindow({ friendId }: { friendId: string | null }) {
                     className="w-2 h-2 bg-gray-400 rounded-full"
                   />
                 </div>
-                <span>typing...</span>
+                <span>Đang soạn tin...</span>
               </div>
             </motion.div>
           )}

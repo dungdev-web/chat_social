@@ -34,57 +34,60 @@ io.on("connection", (socket) => {
   socket.on("join-room", (roomId) => {
     socket.join(roomId);
   });
-
-  socket.on("send-message", ({ roomId }) => {
-    socket.to(roomId).emit("refresh");
+  socket.on("typing", ({ roomId }) => {
+    socket.to(roomId).emit("user-typing");
   });
 
- // ======================
-// CALL AUDIO (WebRTC signaling)
-// ======================
+  socket.on("stop-typing", ({ roomId }) => {
+    socket.to(roomId).emit("user-stopped-typing");
+  });
 
-// ======================
-// CALL AUDIO (WEBRTC SIGNALING)
-// ======================
+  socket.on("send-message", ({ roomId, message }) => {
+    socket.to(roomId).emit("receive-message", message);
+  });
 
-socket.on("call-user", ({ from, to, offer }) => {
-  const toSocket = users.get(to);
-  if (toSocket) {
-    io.to(toSocket).emit("incoming-call", { from, offer });
-  }
-});
+  // ======================
+  // CALL AUDIO (WebRTC signaling)
+  // ======================
 
-socket.on("answer-call", ({ to, answer }) => {
-  const toSocket = users.get(to);
-  if (toSocket) {
-    io.to(toSocket).emit("call-answered", { answer });
-  }
-});
+  // ======================
+  // CALL AUDIO (WEBRTC SIGNALING)
+  // ======================
 
-socket.on("ice-candidate", ({ to, candidate }) => {
-  const toSocket = users.get(to);
-  if (toSocket) {
-    io.to(toSocket).emit("ice-candidate", { candidate });
-  }
-});
+  socket.on("call-user", ({ from, to, offer }) => {
+    const toSocket = users.get(to);
+    if (toSocket) {
+      io.to(toSocket).emit("incoming-call", { from, offer });
+    }
+  });
 
-socket.on("end-call", ({ to }) => {
-  const toSocket = users.get(to);
-  if (toSocket) {
-    io.to(toSocket).emit("call-ended");
-  }
-});
+  socket.on("answer-call", ({ to, answer }) => {
+    const toSocket = users.get(to);
+    if (toSocket) {
+      io.to(toSocket).emit("call-answered", { answer });
+    }
+  });
 
+  socket.on("ice-candidate", ({ to, candidate }) => {
+    const toSocket = users.get(to);
+    if (toSocket) {
+      io.to(toSocket).emit("ice-candidate", { candidate });
+    }
+  });
 
+  socket.on("end-call", ({ to }) => {
+    const toSocket = users.get(to);
+    if (toSocket) {
+      io.to(toSocket).emit("call-ended");
+    }
+  });
 
-
-
-socket.on("reject-call", ({ to }) => {
-  const toSocket = users.get(to);
-  if (toSocket) {
-    io.to(toSocket).emit("call-rejected");
-  }
-});
+  socket.on("reject-call", ({ to }) => {
+    const toSocket = users.get(to);
+    if (toSocket) {
+      io.to(toSocket).emit("call-rejected");
+    }
+  });
 
   // ======================
   // DISCONNECT

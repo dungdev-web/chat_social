@@ -98,7 +98,7 @@ export default function Sidebar({
             <MessageCircle className="w-4.5 h-4.5 text-white" />
           </div>
           <span className="font-bold text-lg tracking-tight text-gray-800">
-            Con gà
+            Chat Realtime
           </span>
         </div>
 

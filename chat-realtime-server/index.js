@@ -5,7 +5,7 @@ const cors = require("cors");
 
 const app = express();
 app.use(cors());
-
+const PORT = process.env.PORT ;
 const server = http.createServer(app);
 
 const io = new Server(server, {
@@ -102,6 +102,6 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(3001, () => {
+server.listen(PORT, () => {
   console.log("✅ Socket server running on http://localhost:3001");
 });

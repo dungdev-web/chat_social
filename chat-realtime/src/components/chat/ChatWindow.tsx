@@ -47,6 +47,9 @@ useEffect(() => {
 
   return () => unsub();
 }, [roomId]);
+useEffect(() => {
+  setText(""); // ✅ reset input khi đổi phòng
+}, [friendId]);
 
   // ✅ RESET MESSAGE KHI ĐỔI PHÒNG
   useEffect(() => {

@@ -32,6 +32,8 @@ export type SendMessagePayload = {
   imageUrl?: string;
 };
 export type ChatInputProps = {
+    friendId?: string;
+
   text: string;
   setText: Dispatch<SetStateAction<string>>; // ✅ QUAN TRỌNG
   onSend: (payload?: SendMessagePayload) => void;

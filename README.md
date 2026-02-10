@@ -2,7 +2,7 @@
 
 A modern, real-time messaging web application enabling instant communication between users with authentication, online status tracking, and a responsive UI built with Next.js and Firebase.
 
-## 🚀 Tech Stack
+## Tech Stack
 
 - **Frontend Framework:** Next.js + React
 - **Styling:** Tailwind CSS
@@ -10,7 +10,7 @@ A modern, real-time messaging web application enabling instant communication bet
 - **Authentication & Database:** Firebase (Firestore + Authentication)
 - **Hosting:** Vercel
 
-## ✨ Features
+## Features
 
 - **User Authentication** - Secure login and registration with Firebase Authentication
 - **Real-time Messaging** - Instant message delivery using Firebase Realtime Database and Socket.io
@@ -19,7 +19,7 @@ A modern, real-time messaging web application enabling instant communication bet
 - **Responsive Design** - Fully optimized for desktop, tablet, and mobile devices
 - **Deployed on Vercel** - Production-ready with automatic deployments from GitHub
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 chat-realtime/
@@ -71,14 +71,14 @@ chat-realtime-server/       # Backend server directory
 └── .gitattributes          # Git attributes
 ```
 
-## 🛠️ Prerequisites
+## Prerequisites
 
-- Node.js (v16 or higher)
+- Node.js (v18 or higher)
 - npm or yarn package manager
 - Git
 - Firebase account with Firestore Database and Authentication enabled
 
-## 📋 Installation
+## Installation
 
 ### 1. Clone the Repository
 
@@ -144,7 +144,7 @@ npm start
 # Backend runs on http://localhost:3001
 ```
 
-## 🎯 Key Components & Hooks
+## Key Components & Hooks
 
 ### Custom Hooks
 
@@ -160,7 +160,7 @@ npm start
 - **AddFriend.tsx** - Friend addition UI
 - **Login.tsx** - Authentication page
 
-## 🔐 Firebase Setup
+## Firebase Setup
 
 ### Enable Required Services
 
@@ -188,45 +188,41 @@ service cloud.firestore {
 }
 ```
 
-## 📊 Database Schema
+## Database Schema
 
 ### Users Collection
 ```javascript
 {
   uid: string,
   email: string,
-  displayName: string,
+  name: string,
   photoURL: string,
-  status: 'online' | 'offline' | 'away',
-  lastSeen: timestamp,
-  friends: string[] // array of user IDs
+  online: 'true'| 'false',
+  createdAt: number,
 }
 ```
 
-### Conversations Collection
+### Friends Collection
 ```javascript
 {
-  conversationId: string,
-  participants: string[],
-  lastMessage: string,
-  lastMessageTime: timestamp,
-  updatedAt: timestamp
+  list:[];
 }
 ```
 
-### Messages Collection
+### Chats Collection
 ```javascript
 {
-  messageId: string,
-  conversationId: string,
-  senderId: string,
-  text: string,
-  timestamp: timestamp,
-  isRead: boolean
+ messages:[
+  sender: string;
+  text: string;
+  seenBy:[];
+  createdAt: timestamp;
+ ]
+
 }
 ```
 
-## 🚀 Available Scripts
+## Available Scripts
 
 ```bash
 # Development
@@ -244,122 +240,10 @@ npm start                # Start backend server
 npm run dev              # Start backend with nodemon
 ```
 
-## 📱 Responsive Design
+## Responsive Design
 
 The application is fully responsive using Tailwind CSS breakpoints:
 
 - **Mobile:** < 640px (sm)
 - **Tablet:** 640px - 1024px (md-lg)
 - **Desktop:** > 1024px (xl+)
-
-## 🔒 Security Best Practices
-
-- Never commit `.env` files with sensitive data
-- Use environment variables for all API keys
-- Implement Firebase security rules to restrict access
-- Validate user input on both client and server
-- Use HTTPS in production
-
-## 🐛 Troubleshooting
-
-### Issue: Socket.io connection fails
-- Verify the Socket server is running on the correct port
-- Check `VITE_SOCKET_SERVER_URL` environment variable
-- Ensure firewall allows WebSocket connections
-
-### Issue: Firebase authentication errors
-- Verify Firebase configuration in `.env`
-- Check Firebase console for enabled Authentication providers
-- Ensure Firestore Database is created
-
-### Issue: Real-time updates not working
-- Check browser console for errors
-- Verify Firebase Realtime Database rules
-- Ensure user is authenticated before sending messages
-
-### Issue: Messages not persisting
-- Verify Firestore Database is enabled
-- Check database security rules
-- Ensure proper error handling in message service
-
-## 📚 Learning Resources
-
-- [Next.js Documentation](https://nextjs.org/docs)
-- [React Documentation](https://react.dev)
-- [Tailwind CSS Guide](https://tailwindcss.com/docs)
-- [Firebase Documentation](https://firebase.google.com/docs)
-- [Socket.io Guide](https://socket.io/docs/)
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
-
-## 📦 Dependencies
-
-### Frontend
-- `next` - React framework
-- `react` - UI library
-- `tailwindcss` - Utility-first CSS framework
-- `firebase` - Backend services
-- `socket.io-client` - Real-time communication
-- `typescript` - Type safety
-
-### Backend
-- `express` - Web framework
-- `socket.io` - Real-time communication
-- `firebase-admin` - Firebase server SDK
-- `dotenv` - Environment variable management
-
-## 🚀 Deployment
-
-### Deploy Frontend to Vercel
-
-1. Push code to GitHub repository
-2. Visit [Vercel Dashboard](https://vercel.com/dashboard)
-3. Click "Add New..." → "Project"
-4. Select your repository
-5. Configure environment variables in Vercel settings
-6. Deploy!
-
-### Deploy Backend
-
-Deploy the server independently to:
-- Heroku
-- Railway
-- AWS EC2
-- DigitalOcean
-- Google Cloud Platform
-
-Update `VITE_SOCKET_SERVER_URL` in production environment variables with the deployed server URL.
-
-## 📄 License
-
-This project is open source and available under the MIT License. See LICENSE file for details.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 💬 Support & Contact
-
-For questions, issues, or suggestions:
-
-- **GitHub Issues:** [Create an Issue](https://github.com/yourusername/chat-realtime/issues)
-- **Email:** your.email@example.com
-- **Twitter:** [@yourhandle](https://twitter.com/yourhandle)
-- **LinkedIn:** [Your Profile](https://linkedin.com/in/yourprofile)
-
-## 🎉 Acknowledgments
-
-- Firebase for real-time database and authentication
-- Socket.io for WebSocket communication
-- Next.js for the React framework
-- Tailwind CSS for responsive styling
-- The open-source community
-
----
-
-Made with ❤️ for real-time communication

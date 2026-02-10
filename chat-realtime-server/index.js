@@ -103,5 +103,5 @@ io.on("connection", (socket) => {
 });
 
 server.listen(PORT, () => {
-  console.log("✅ Socket server running on http://localhost:3001");
+  console.log("Socket server running on http://localhost:3001");
 });
